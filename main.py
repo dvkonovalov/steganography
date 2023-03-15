@@ -1,3 +1,4 @@
+import numpy
 from PIL import Image
 
 global height, width, passage
@@ -23,20 +24,25 @@ def change_value(number, bit, pos):
 
 
 def next_pixel(x, y):
-    global passage
-    if passage==3:
-        pass
-    if (x==passage-1 and y==passage):
-        passage+=1
-    if (x==width-passage and y<height-passage):
+    """
+    Перейти спирально к следующему пикселю в матрице
+    :param x: координата x
+    :param y: координата y
+    :return: x, y
+    """
+    global width, height, passage
+    if (x==passage-1 and y == passage):
+        passage += 1
+    if (x<width-passage and y==passage-1):
+        x+=1
+    elif (x==width-passage and y<height-passage):
         y += 1
     elif (y==height-passage and x>passage-1):
-        x -= 1
-    elif (x==passage-1 and y>passage):
-        y -= 1
+        x-=1
     else:
-        x += 1
+        y -= 1
     return x, y
+
 
 
 
@@ -48,18 +54,12 @@ def embedding_information(path, secret):
     secret = ''.join(format(ord(x), '08b') for x in secret)
     x = 0
     y = 0
-    # for symbol in secret:
-    #     pixel = matrix[y, x]
-    #     temp = (pixel[0], change_value(pixel[1], int(symbol), 1), pixel[2])
-    #     pixel = temp
+    for symbol in secret:
+        pixel = matrix[y, x]
+        temp = (pixel[0], change_value(pixel[1], int(symbol), 1), pixel[2])
+        matrix[y, x] = temp
+        x, y = next_pixel(x, y)
+    img.show()
 
 
-
-height = 6
-width = 10
-x = 0
-y = 0
-for i in range(5*10):
-    x, y = next_pixel(x, y)
-    print(x, y, passage)
-
+embedding_information('image1.jpg', 'hello')
