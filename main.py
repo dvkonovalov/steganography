@@ -7,6 +7,14 @@ global height, width, passage
 passage = 1
 
 
+def save_image(matrix, path):
+    img = Image.new('RGB', (height, width), 'white')
+    matrix_new = img.load()
+    for i in range(height):
+        for j in range(width):
+            matrix_new[i, j] = matrix[i, j]
+    img.save(path, 'JPEG')
+
 def get_bit(number, position):
     """
     Функция получения бита
@@ -69,18 +77,13 @@ def embedding_information(path, secret):
     (h, w) = img.size
     height = h
     width = w
-    secret += '☼'
     secret = ''.join(format(ord(x), '08b') for x in secret)
+    secret += '0'*8
     x = 0
     y = 0
     count = 0
     position = 1
     color = 2
-
-    mas = numpy.zeros((h, w), dtype=numpy.int64)
-    sch = 0
-
-    print(height, width, len(secret))
     for symbol in secret:
         if color == 2:
             pixel = matrix[y, x]
@@ -100,8 +103,6 @@ def embedding_information(path, secret):
             matrix[y, x] = temp
             x, y = next_pixel(x, y)
             count += 1
-        mas[y, x] = sch
-        sch += 1
         if count == (height * width):
             x = 0
             y = 0
@@ -110,21 +111,17 @@ def embedding_information(path, secret):
             count = 0
             if color == 2:
                 position += 1
-    img.show()
-    img.save('image2.jpg')
     return matrix
 
-def extracting_information(path):
-    img = Image.open(path)
-    matrix = img.load()
+def extracting_information(matrix):
     message = ''
     no_end = True
+    x = 0
+    y = 0
+    count = 0
+    position = 1
+    color = 2
     while no_end:
-        x = 0
-        y = 0
-        count = 0
-        position = 1
-        color = 2
         symbol = ''
         for _ in range(8):
             if color == 2:
@@ -149,40 +146,22 @@ def extracting_information(path):
                 color = (color + 1) % 3
                 if color == 2:
                     position += 1
-        print(symbol)
-        symbol = chr(int(symbol, 2))
-        message += symbol
-        print(message)
-        time.sleep(1)
-        if symbol=='☼':
+        symbol = int(symbol, 2)
+        if symbol==0:
             break
+        symbol = chr(symbol)
+        message += symbol
     return message
 
 
-embedding_information('image2.jpg', 'Привет'*10000)
+matrix = embedding_information('image2.jpg', 'PYTHON'*1)
+print(extracting_information(matrix))
+# save_image(matrix, 'image3.jpg')
+#
+# img = Image.open('image3.jpg')
+# matrix1 = img.load()
 
-# width = 450
-# height = 253
-#
-# mas = numpy.zeros((253, 450), dtype=numpy.int64)
-# x = 0
-# y = 0
-# sch = 0
-# for i in range(width*height):
-#     if mas[y, x]!=0:
-#         print(y, x)
-#     mas[y, x] = sch
-#     x, y = next_pixel(x, y)
-#     sch += 1
-# print(sch)
-
-# print(extracting_information('image2.jpg'))
-#
-# img = Image.open('image1.jpg')
-# matrix = img.load()
-#
 # for i in range(height):
 #     for j in range(width):
-#         if matrix[i, j][2]!=matrix1[i, j][2]:
-#             print(matrix[i, j][2], matrix1[i, j][2], i, j)
-#             time.sleep(1)
+#         print(matrix1[i, j][2]%2)
+#         time.sleep(1)
