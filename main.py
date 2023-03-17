@@ -1,19 +1,25 @@
-import time
+import os
 
 from PIL import Image
 
 global height, width, passage
-passage = 1
 
 
 def save_image(matrix, path):
-    im = Image.open(path)
+    """
+    Функция для сохранения изображения после встраивания информации
+    :param matrix: матрица пикселей
+    :param path: путь для сохранения
+    :return:
+    """
+    im = Image.new('RGB', (height, width), 'white')
     matrix_new = im.load()
     for i in range(height):
         for j in range(width):
             pixel = matrix[i, j]
             matrix_new[i, j] = (pixel[0], pixel[1], pixel[2])
-    im.save('kart.png')
+    im.save(path)
+
 
 def get_bit(number, position):
     """
@@ -23,8 +29,8 @@ def get_bit(number, position):
     :return: бит
     """
     number = bin(number)[2:]
-    if (len(number)<8):
-        number = '0'*(8-len(number)) + number
+    if len(number) < 8:
+        number = '0' * (8 - len(number)) + number
     return number[-position]
 
 
@@ -55,30 +61,32 @@ def next_pixel(x, y):
     :return: x, y
     """
     global width, height, passage
-    if (x == passage - 1 and y == passage):
+    if x == passage - 1 and y == passage:
         passage += 1
-    if (x==width//2 and passage==width//2):
-        y-1
-    elif (x < width - passage and y == passage - 1):
+    if x == width // 2 and passage == width // 2:
+        y - 1
+    elif x < width - passage and y == passage - 1:
         x += 1
-    elif (x == width - passage and y < height - passage):
+    elif x == width - passage and y < height - passage:
         y += 1
-    elif (y == height - passage and x > passage - 1):
+    elif y == height - passage and x > passage - 1:
         x -= 1
     else:
         y -= 1
     return x, y
 
 
-def embedding_information(path, secret):
-    global height, width, passage
-    img = Image.open(path)
-    matrix = img.load()
-    (h, w) = img.size
-    height = h
-    width = w
+def embedding_information(matrix, secret):
+    """
+    Функция для встраивания секретной информации в изображение
+    :param matrix: матрица начального изображения
+    :param secret: секретная информация в виде строки
+    :return:матрица пикселей с встроенной секретной информацией
+    """
+    global passage
+    passage = 1
     secret = ''.join(format(ord(x), '08b') for x in secret)
-    secret += '0'*8
+    secret += '0' * 8
     x = 0
     y = 0
     count = 0
@@ -113,7 +121,15 @@ def embedding_information(path, secret):
                 position += 1
     return matrix
 
+
 def extracting_information(matrix):
+    """
+    Декодирование секретной информации из изображения
+    :param matrix: матрица пикселей изображения
+    :return: секретное сообщение
+    """
+    global passage
+    passage = 1
     message = ''
     no_end = True
     x = 0
@@ -147,16 +163,58 @@ def extracting_information(matrix):
                 if color == 2:
                     position += 1
         symbol = int(symbol, 2)
-        # print(symbol)
-        if symbol==0:
+        if symbol == 0:
             break
         symbol = chr(symbol)
         message += symbol
     return message
 
 
-matrix = embedding_information('image2.jpg', 'PYTHON'*1)
-print(extracting_information(matrix))
-save_image(matrix, 'kartina.png')
-matrix = (Image.open('kartina.png')).load()
-print(extracting_information(matrix))
+
+def find_secret(path):
+    """
+    Функция для обрадотки декдирования секретной информации из изображения и запись ее в файл secret.txt
+    :param path: Путь к изображению
+    :return:
+    """
+    global height, width
+    try:
+        img = Image.open(path)
+        matrix = img.load()
+        (height, width) = img.size
+        message = extracting_information(matrix)
+        with open('secret.txt', 'w') as f:
+            f.write(message)
+        return True
+    except:
+        return False
+
+
+def insert_secret(path_image, message, file=False):
+    """
+    Функция обработки изображения и взодных данных
+    :param path_image: путь до изображения
+    :param message: сообщение или путь до файла
+    :param file: True если используется файл передачи секретных данных
+    :return: True - успех, False - произошла ошибка
+    """
+    global height, width
+    try:
+        img = Image.open(path_image)
+        matrix = img.load()
+        (height, width) = img.size
+        mes = message
+        if file:
+            with open(message, 'r') as f:
+                mes += f.readline() + '\n'
+        message = mes
+        matrix = embedding_information(matrix, message)
+        path_image_old = path_image
+        if path_image[path_image.rfind('.'):] != 'png':
+            path_image = path_image[:path_image.rfind('.') + 1] + 'png'
+        save_image(matrix, path_image)
+        if path_image_old[-3:] != 'png':
+            os.remove(path_image_old)
+        return True
+    except:
+        return False
