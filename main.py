@@ -1,6 +1,5 @@
 import time
 
-import numpy
 from PIL import Image
 
 global height, width, passage
@@ -8,12 +7,13 @@ passage = 1
 
 
 def save_image(matrix, path):
-    img = Image.new('RGB', (height, width), 'white')
-    matrix_new = img.load()
+    im = Image.open(path)
+    matrix_new = im.load()
     for i in range(height):
         for j in range(width):
-            matrix_new[i, j] = matrix[i, j]
-    img.save(path, 'JPEG')
+            pixel = matrix[i, j]
+            matrix_new[i, j] = (pixel[0], pixel[1], pixel[2])
+    im.save('kart.png')
 
 def get_bit(number, position):
     """
@@ -147,6 +147,7 @@ def extracting_information(matrix):
                 if color == 2:
                     position += 1
         symbol = int(symbol, 2)
+        # print(symbol)
         if symbol==0:
             break
         symbol = chr(symbol)
@@ -156,12 +157,6 @@ def extracting_information(matrix):
 
 matrix = embedding_information('image2.jpg', 'PYTHON'*1)
 print(extracting_information(matrix))
-# save_image(matrix, 'image3.jpg')
-#
-# img = Image.open('image3.jpg')
-# matrix1 = img.load()
-
-# for i in range(height):
-#     for j in range(width):
-#         print(matrix1[i, j][2]%2)
-#         time.sleep(1)
+save_image(matrix, 'kartina.png')
+matrix = (Image.open('kartina.png')).load()
+print(extracting_information(matrix))
