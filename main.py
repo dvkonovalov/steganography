@@ -1,5 +1,7 @@
 import os
 
+import numpy
+import skimage
 from PIL import Image
 
 global height, width, passage
@@ -119,6 +121,8 @@ def embedding_information(matrix, secret):
             count = 0
             if color == 2:
                 position += 1
+            if position == 9:
+                break
     return matrix
 
 
@@ -178,16 +182,14 @@ def find_secret(path):
     :return:
     """
     global height, width
-    try:
-        img = Image.open(path)
-        matrix = img.load()
-        (height, width) = img.size
-        message = extracting_information(matrix)
-        with open('secret.txt', 'w') as f:
-            f.write(message)
-        return True
-    except:
-        return False
+    img = Image.open(path)
+    matrix = img.load()
+    (height, width) = img.size
+    message = extracting_information(matrix)
+    with open('secret.txt', 'w') as f:
+        f.write(message)
+    return True
+
 
 
 def insert_secret(path_image, message, file=False):
@@ -199,22 +201,60 @@ def insert_secret(path_image, message, file=False):
     :return: True - успех, False - произошла ошибка
     """
     global height, width
-    try:
-        img = Image.open(path_image)
-        matrix = img.load()
-        (height, width) = img.size
+    img = Image.open(path_image)
+    matrix = img.load()
+    (height, width) = img.size
+    if file:
         mes = message
-        if file:
-            with open(message, 'r') as f:
-                mes += f.readline() + '\n'
-        message = mes
-        matrix = embedding_information(matrix, message)
-        path_image_old = path_image
-        if path_image[path_image.rfind('.'):] != 'png':
-            path_image = path_image[:path_image.rfind('.') + 1] + 'png'
-        save_image(matrix, path_image)
-        if path_image_old[-3:] != 'png':
-            os.remove(path_image_old)
-        return True
-    except:
-        return False
+        message = ''
+        with open(mes, 'r') as f:
+            for i in f:
+                message += i
+    # Скопируем матрицу в массив для подсчета метрик
+    main_mas = []
+    for i in range(height):
+        mas = []
+        for j in range(width):
+            mas.append(list(matrix[i, j]))
+        main_mas.append(mas)
+    matrix_orig = numpy.array(main_mas)
+
+    matrix = embedding_information(matrix, message)
+    path_image_old = path_image
+    if path_image[path_image.rfind('.'):] != 'png':
+        path_image = path_image[:path_image.rfind('.') + 1] + 'png'
+    save_image(matrix, path_image)
+    if path_image_old[-3:] != 'png':
+        os.remove(path_image_old)
+
+
+
+
+
+    # #Расчет метрик PSNR and SSIM
+    print('Емкость встраивания - ', round(len(message)*8/(height*width*3*8), 8)*100, '%')
+    main_mas = []
+    for i in range(height):
+        mas = []
+        for j in range(width):
+            mas.append(list(matrix[i, j]))
+        main_mas.append(mas)
+    matrix_copy = numpy.array(main_mas)
+    print('Метрика PSNR = ', round(skimage.metrics.peak_signal_noise_ratio(matrix_orig, matrix_copy), 2))
+    print('Метрика SSIM = ', skimage.metrics.structural_similarity(matrix_orig, matrix_copy, channel_axis = 2))
+
+    img = Image.open(path_image)
+    matrix = img.load()
+    message_decode = extracting_information(matrix)
+    summa = 0
+    for i in range(len(message_decode)):
+        if (message_decode[i]!=message[i]):
+            do = bin(ord(message[i]))[2:]
+            posle = bin(ord(message_decode[i]))[2:]
+            do = '0'*(8-len(do))+do
+            posle = '0'*(8-len(posle)) + posle
+            for j in range(8):
+                if do[j]!=posle[j]:
+                    summa += 1
+    print('Метрика BER = ', summa)
+    return True

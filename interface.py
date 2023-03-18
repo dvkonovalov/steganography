@@ -5,7 +5,7 @@ import tkinter.messagebox as mb
 import main
 
 
-global path_image, file_path
+global path_image, file_path, r_var
 
 def decod_inf():
     flag = main.find_secret(path_image)
@@ -16,11 +16,10 @@ def decod_inf():
 
 def insert_inf():
     global r_var, path_image, file_path
-    if r_var==1:
+    if r_var.get()==1:
         flag = main.insert_secret(path_image, file_path, True)
     else:
         mes = pole_secret.get("1.0","end")
-        print(path_image, mes)
         flag = main.insert_secret(path_image, mes)
     if flag:
         mb.showinfo('Успех', 'Секретная информация успешно вставлена в изображение')
@@ -41,7 +40,7 @@ def choice_image_insert():
 def choice_file_insert():
     global file_path
     file_path = filedialog.askopenfilename()
-    stroka_file.config(text='Выбран файл - ' + path_image[path_image.rfind('/') + 1:])
+    stroka_file.config(text='Выбран файл - ' + file_path[file_path.rfind('/') + 1:])
 
 window = tk.Tk()
 width = 960
