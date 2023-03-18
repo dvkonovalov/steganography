@@ -256,5 +256,5 @@ def insert_secret(path_image, message, file=False):
             for j in range(8):
                 if do[j]!=posle[j]:
                     summa += 1
-    print('Метрика BER = ', summa)
+    print('Метрика BER = ', round(summa/height/width/3*100, 5), '%')
     return True
