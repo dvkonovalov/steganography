@@ -16,8 +16,9 @@ def decod_inf():
 
 def insert_inf():
     global r_var, path_image, file_path
+    print()
     if r_var.get()==1:
-        flag = main.insert_secret(path_image, file_path, True)
+        flag = main.insert_secret(path_image, 'data.txt', True) #стоит костыть
     else:
         mes = pole_secret.get("1.0","end")
         flag = main.insert_secret(path_image, mes)

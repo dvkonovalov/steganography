@@ -224,15 +224,16 @@ def insert_secret(path_image, message, file=False):
     if path_image[path_image.rfind('.'):] != 'png':
         path_image = path_image[:path_image.rfind('.') + 1] + 'png'
     save_image(matrix, path_image)
-    if path_image_old[-3:] != 'png':
-        os.remove(path_image_old)
+    # if path_image_old[-3:] != 'png':
+    #     os.remove(path_image_old)
+
+    #стоит костыль
 
 
 
 
 
     # #Расчет метрик PSNR and SSIM
-    print('Емкость встраивания - ', round(len(message)*8/(height*width*3*8), 8)*100, '%')
     main_mas = []
     for i in range(height):
         mas = []
@@ -240,8 +241,10 @@ def insert_secret(path_image, message, file=False):
             mas.append(list(matrix[i, j]))
         main_mas.append(mas)
     matrix_copy = numpy.array(main_mas)
+    ssim = skimage.metrics.structural_similarity(matrix_orig, matrix_copy, channel_axis = 2)
+    print('Емкость встраивания - ', round(len(message)*8/(height*width*3*8), 8)*100, '%')
     print('Метрика PSNR = ', round(skimage.metrics.peak_signal_noise_ratio(matrix_orig, matrix_copy), 2))
-    print('Метрика SSIM = ', skimage.metrics.structural_similarity(matrix_orig, matrix_copy, channel_axis = 2))
+    print('Метрика SSIM = ', ssim)
 
     img = Image.open(path_image)
     matrix = img.load()
