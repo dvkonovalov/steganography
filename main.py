@@ -1,7 +1,7 @@
-import os
-
 import numpy
 import skimage
+import os
+import matplotlib.pyplot as plt
 from PIL import Image
 
 global height, width, passage
@@ -211,53 +211,79 @@ def insert_secret(path_image, message, file=False):
             for i in f:
                 message += i
     # Скопируем матрицу в массив для подсчета метрик
-    main_mas = []
-    for i in range(height):
-        mas = []
-        for j in range(width):
-            mas.append(list(matrix[i, j]))
-        main_mas.append(mas)
-    matrix_orig = numpy.array(main_mas)
+    # main_mas = []
+    # mas_pixel_do = [0]*256
+    # for i in range(height):
+    #     mas = []
+    #     for j in range(width):
+    #         mas_pixel_do[matrix[i, j][0]] += 1
+    #         mas_pixel_do[matrix[i, j][1]] += 1
+    #         mas_pixel_do[matrix[i, j][2]] += 1
+    #         mas.append(list(matrix[i, j]))
+    #     main_mas.append(mas)
+    # matrix_orig = numpy.array(main_mas)
 
     matrix = embedding_information(matrix, message)
     path_image_old = path_image
     if path_image[path_image.rfind('.'):] != 'png':
         path_image = path_image[:path_image.rfind('.') + 1] + 'png'
     save_image(matrix, path_image)
-    # if path_image_old[-3:] != 'png':
-    #     os.remove(path_image_old)
+    if path_image_old[-3:] != 'png':
+        os.remove(path_image_old)
 
-    #стоит костыль
+    # #стоит костыль
+    # # #Расчет метрик PSNR and SSIM
+    # mas_pixel_posle = [0] * 256
+    # for i in range(height):
+    #     for j in range(width):
+    #         mas_pixel_posle[matrix[i, j][0]] += 1
+    #         mas_pixel_posle[matrix[i, j][1]] += 1
+    #         mas_pixel_posle[matrix[i, j][2]] += 1
+    #
+    # main_mas = []
+    # for i in range(height):
+    #     mas = []
+    #     for j in range(width):
+    #         mas.append(list(matrix[i, j]))
+    #     main_mas.append(mas)
+    # matrix_copy = numpy.array(main_mas)
+    # ssim = skimage.metrics.structural_similarity(matrix_orig, matrix_copy, channel_axis = 2)
+    # print('Емкость встраивания - ', round(len(message)*8/(height*width*3*8), 8)*100, '%')
+    # print('Метрика PSNR = ', round(skimage.metrics.peak_signal_noise_ratio(matrix_orig, matrix_copy), 2))
+    # print('Метрика SSIM = ', ssim)
+    #
+    # img = Image.open(path_image)
+    # matrix = img.load()
+    # message_decode = extracting_information(matrix)
+    # summa = 0
+    # for i in range(len(message_decode)):
+    #     if (message_decode[i]!=message[i]):
+    #         do = bin(ord(message[i]))[2:]
+    #         posle = bin(ord(message_decode[i]))[2:]
+    #         do = '0'*(8-len(do))+do
+    #         posle = '0'*(8-len(posle)) + posle
+    #         for j in range(8):
+    #             if do[j]!=posle[j]:
+    #                 summa += 1
+    # print('Метрика BER = ', round(summa/height/width/3*100, 5), '%')
+    #
+    # #Вывод графиков
+    # x1 = numpy.arange(0, 256)
+    # y1 = numpy.array(mas_pixel_do)
+    # x2 = numpy.arange(0, 256)
+    # y2 = numpy.array(mas_pixel_posle)
+    #
+    # fig, axes = plt.subplots(2, 1)
+    #
+    # axes[0].bar(x1, y1)
+    # axes[1].bar(x2, y2)
+    #
+    # axes[0].set_facecolor('seashell')
+    # axes[1].set_facecolor('seashell')
+    # fig.set_facecolor('floralwhite')
+    # fig.set_figwidth(12)  # ширина Figure
+    # fig.set_figheight(6)  # высота Figure
+    #
+    # plt.show()
 
-
-
-
-
-    # #Расчет метрик PSNR and SSIM
-    main_mas = []
-    for i in range(height):
-        mas = []
-        for j in range(width):
-            mas.append(list(matrix[i, j]))
-        main_mas.append(mas)
-    matrix_copy = numpy.array(main_mas)
-    ssim = skimage.metrics.structural_similarity(matrix_orig, matrix_copy, channel_axis = 2)
-    print('Емкость встраивания - ', round(len(message)*8/(height*width*3*8), 8)*100, '%')
-    print('Метрика PSNR = ', round(skimage.metrics.peak_signal_noise_ratio(matrix_orig, matrix_copy), 2))
-    print('Метрика SSIM = ', ssim)
-
-    img = Image.open(path_image)
-    matrix = img.load()
-    message_decode = extracting_information(matrix)
-    summa = 0
-    for i in range(len(message_decode)):
-        if (message_decode[i]!=message[i]):
-            do = bin(ord(message[i]))[2:]
-            posle = bin(ord(message_decode[i]))[2:]
-            do = '0'*(8-len(do))+do
-            posle = '0'*(8-len(posle)) + posle
-            for j in range(8):
-                if do[j]!=posle[j]:
-                    summa += 1
-    print('Метрика BER = ', round(summa/height/width/3*100, 5), '%')
     return True
