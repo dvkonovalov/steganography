@@ -7,6 +7,7 @@ import main
 
 global path_image, file_path, r_var
 
+
 def decod_inf():
     flag = main.find_secret(path_image)
     if flag:
